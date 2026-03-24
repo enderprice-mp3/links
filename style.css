@@ -1,0 +1,364 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #0d0010;
+  --bg-card: rgba(255, 255, 255, 0.04);
+  --purple-deep: #3b0764;
+  --purple-mid: #7c3aed;
+  --purple-bright: #a855f7;
+  --purple-glow: rgba(168, 85, 247, 0.35);
+  --text: #f0e6ff;
+  --text-muted: rgba(240, 230, 255, 0.45);
+  --spotify: #1DB954;
+  --instagram: #E1306C;
+  --tiktok: #69C9D0;
+  --radius-btn: 9999px;
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Animated aurora background */
+.bg-aurora {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bg-aurora::before,
+.bg-aurora::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.55;
+}
+
+.bg-aurora::before {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, #6d28d9, transparent 70%);
+  top: -150px;
+  left: -100px;
+  animation: drift1 14s ease-in-out infinite alternate;
+}
+
+.bg-aurora::after {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #4c1d95, transparent 70%);
+  bottom: -100px;
+  right: -100px;
+  animation: drift2 18s ease-in-out infinite alternate;
+}
+
+.bg-aurora-mid {
+  position: fixed;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, #7c3aed44, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  filter: blur(60px);
+  animation: drift3 10s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes drift1 {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(80px, 60px) scale(1.2); }
+}
+
+@keyframes drift2 {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(-60px, -80px) scale(1.15); }
+}
+
+@keyframes drift3 {
+  from { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+  to   { transform: translate(-50%, -50%) scale(1.3); opacity: 0.9; }
+}
+
+/* Page wrapper */
+.page {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  padding: 2rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Card */
+.card {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  border-radius: 24px;
+  padding: 2.5rem 2rem 2rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* Avatar */
+.avatar-wrap {
+  position: relative;
+  margin-bottom: 1.5rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.avatar-wrap.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.avatar-ring {
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, var(--purple-mid), var(--purple-bright), var(--purple-deep), var(--purple-mid));
+  animation: spin-ring 6s linear infinite;
+  z-index: -1;
+}
+
+@keyframes spin-ring {
+  to { transform: rotate(360deg); }
+}
+
+.avatar-glow {
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  background: var(--purple-glow);
+  filter: blur(14px);
+  animation: pulse-glow 3s ease-in-out infinite alternate;
+  z-index: -2;
+}
+
+@keyframes pulse-glow {
+  from { opacity: 0.5; transform: scale(0.95); }
+  to   { opacity: 1;   transform: scale(1.05); }
+}
+
+.avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b0764, #6d28d9);
+  border: 3px solid var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  color: var(--text);
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+/* Artist name */
+.artist-name {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s ease 0.15s, transform 0.6s ease 0.15s;
+}
+
+.artist-name.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tagline {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  margin-bottom: 2rem;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.6s ease 0.25s, transform 0.6s ease 0.25s;
+}
+
+.tagline.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Links */
+.links {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.link-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 0.9rem 1.4rem;
+  border-radius: var(--radius-btn);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--transition), border-color var(--transition), background var(--transition), box-shadow var(--transition);
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.link-btn.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.link-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity var(--transition);
+  border-radius: inherit;
+}
+
+.link-btn:hover {
+  transform: translateY(-2px) scale(1.01);
+}
+
+/* Spotify */
+.link-btn.spotify::before {
+  background: radial-gradient(ellipse at center, rgba(29, 185, 84, 0.15), transparent 70%);
+}
+.link-btn.spotify:hover {
+  border-color: var(--spotify);
+  box-shadow: 0 0 20px rgba(29, 185, 84, 0.3), 0 4px 16px rgba(0,0,0,0.4);
+  background: rgba(29, 185, 84, 0.1);
+}
+.link-btn.spotify:hover::before { opacity: 1; }
+.link-btn.spotify .btn-icon { color: var(--spotify); }
+
+/* Instagram */
+.link-btn.instagram::before {
+  background: radial-gradient(ellipse at center, rgba(225, 48, 108, 0.15), transparent 70%);
+}
+.link-btn.instagram:hover {
+  border-color: var(--instagram);
+  box-shadow: 0 0 20px rgba(225, 48, 108, 0.3), 0 4px 16px rgba(0,0,0,0.4);
+  background: rgba(225, 48, 108, 0.1);
+}
+.link-btn.instagram:hover::before { opacity: 1; }
+.link-btn.instagram .btn-icon { color: var(--instagram); }
+
+/* TikTok */
+.link-btn.tiktok::before {
+  background: radial-gradient(ellipse at center, rgba(105, 201, 208, 0.15), transparent 70%);
+}
+.link-btn.tiktok:hover {
+  border-color: var(--tiktok);
+  box-shadow: 0 0 20px rgba(105, 201, 208, 0.3), 0 4px 16px rgba(0,0,0,0.4);
+  background: rgba(105, 201, 208, 0.1);
+}
+.link-btn.tiktok:hover::before { opacity: 1; }
+.link-btn.tiktok .btn-icon { color: var(--tiktok); }
+
+/* TikTok FX (editing account) */
+.link-btn.tiktok-fx::before {
+  background: radial-gradient(ellipse at center, rgba(105, 201, 208, 0.1), transparent 70%);
+}
+.link-btn.tiktok-fx:hover {
+  border-color: var(--tiktok);
+  box-shadow: 0 0 20px rgba(105, 201, 208, 0.2), 0 4px 16px rgba(0,0,0,0.4);
+  background: rgba(105, 201, 208, 0.07);
+}
+.link-btn.tiktok-fx:hover::before { opacity: 1; }
+.link-btn.tiktok-fx .btn-icon { color: var(--tiktok); opacity: 0.7; }
+
+.btn-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  transition: color var(--transition);
+}
+
+.btn-label {
+  flex: 1;
+  text-align: center;
+  padding-right: 22px; /* offset for icon to visually center text */
+}
+
+/* Footer */
+.footer {
+  margin-top: 1.75rem;
+  font-size: 0.72rem;
+  color: rgba(240, 230, 255, 0.2);
+  letter-spacing: 0.04em;
+  opacity: 0;
+  transition: opacity 0.6s ease 0.8s;
+}
+
+.footer.visible {
+  opacity: 1;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 2rem 1.25rem 1.5rem;
+    border-radius: 20px;
+  }
+  .artist-name {
+    font-size: 1.7rem;
+  }
+}
