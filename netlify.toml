@@ -1,0 +1,21 @@
+[[redirects]]
+  from = "/login"
+  to = "/login.html"
+  status = 200
+
+[[redirects]]
+  from = "/signup"
+  to = "/signup.html"
+  status = 200
+
+[[redirects]]
+  from = "/dashboard"
+  to = "/dashboard.html"
+  status = 200
+
+# Catch-all for /:username routes — must be last.
+# Netlify serves existing static files first, so style.css, avatar.JPG etc. are unaffected.
+[[redirects]]
+  from = "/:username"
+  to = "/profile.html"
+  status = 200

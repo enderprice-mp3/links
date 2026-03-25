@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .bio-text {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 1.75rem;
+      line-height: 1.5;
+      max-width: 280px;
+    }
+    .avatar-initials {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text);
+      text-transform: uppercase;
+      user-select: none;
+    }
+    .not-found {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+    .not-found strong {
+      display: block;
+      font-size: 1.5rem;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-aurora" aria-hidden="true"></div>
+  <div class="bg-aurora-mid" aria-hidden="true"></div>
+
+  <main class="page" id="profilePage" style="display:none">
+    <div class="card">
+      <!-- Avatar -->
+      <div class="avatar-wrap visible">
+        <div class="avatar-glow"></div>
+        <div class="avatar-ring"></div>
+        <div class="avatar" id="avatarEl">
+          <span class="avatar-initials" id="avatarInitials"></span>
+        </div>
+      </div>
+
+      <!-- Name & bio -->
+      <h1 class="artist-name visible" id="displayName"></h1>
+      <p class="bio-text tagline visible" id="bioEl" style="display:none"></p>
+
+      <!-- Links -->
+      <nav class="links" id="linksEl" aria-label="Links"></nav>
+    </div>
+
+    <footer class="footer visible">
+      <a href="/" style="color:inherit;opacity:0.6;text-decoration:none;">← back</a>
+    </footer>
+  </main>
+
+  <main class="page" id="notFoundPage" style="display:none">
+    <div class="card">
+      <p class="not-found">
+        <strong>404</strong>
+        This profile doesn't exist.
+      </p>
+    </div>
+  </main>
+
+  <script type="module">
+    import { supabase } from './supabase-client.js'
+
+    const username = window.location.pathname.slice(1).split('/')[0]
+
+    if (!username) {
+      window.location.href = '/'
+    }
+
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('username', username)
+      .single()
+
+    if (!profile || error) {
+      document.getElementById('notFoundPage').style.display = ''
+      document.title = '404 — Not Found'
+    } else {
+      document.title = profile.display_name || profile.username
+
+      // Initials avatar
+      const initials = (profile.display_name || profile.username)
+        .split(' ')
+        .map(w => w[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase()
+      document.getElementById('avatarInitials').textContent = initials
+
+      document.getElementById('displayName').textContent = profile.display_name || profile.username
+
+      const bioEl = document.getElementById('bioEl')
+      if (profile.bio) {
+        bioEl.textContent = profile.bio
+        bioEl.style.display = ''
+      }
+
+      const linksEl = document.getElementById('linksEl')
+      const links = profile.links || []
+      links.forEach(link => {
+        const a = document.createElement('a')
+        a.className = 'link-btn visible'
+        a.href = link.url
+        a.target = '_blank'
+        a.rel = 'noopener noreferrer'
+        a.innerHTML = `<span class="btn-label">${escapeHtml(link.label)}</span>`
+        linksEl.appendChild(a)
+      })
+
+      document.getElementById('profilePage').style.display = ''
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+    }
+  </script>
+</body>
+</html>

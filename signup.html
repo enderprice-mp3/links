@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .auth-card {
+      width: 100%;
+      max-width: 380px;
+    }
+    .auth-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 1.75rem;
+      text-align: center;
+    }
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      width: 100%;
+    }
+    .auth-input {
+      width: 100%;
+      padding: 0.85rem 1.1rem;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(168, 85, 247, 0.2);
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .auth-input:focus {
+      border-color: var(--purple-mid);
+    }
+    .auth-input::placeholder {
+      color: var(--text-muted);
+    }
+    .auth-hint {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: -0.35rem;
+      padding-left: 0.25rem;
+    }
+    .auth-btn {
+      margin-top: 0.5rem;
+      padding: 0.9rem;
+      border-radius: var(--radius-btn);
+      background: var(--purple-mid);
+      border: none;
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .auth-btn:hover {
+      background: var(--purple-bright);
+      transform: translateY(-1px);
+    }
+    .auth-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .auth-error {
+      color: #f87171;
+      font-size: 0.85rem;
+      text-align: center;
+      min-height: 1.2em;
+    }
+    .auth-footer {
+      margin-top: 1.25rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .auth-footer a {
+      color: var(--purple-bright);
+      text-decoration: none;
+    }
+    .auth-footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-aurora" aria-hidden="true"></div>
+  <div class="bg-aurora-mid" aria-hidden="true"></div>
+
+  <main class="page">
+    <div class="card auth-card">
+      <h1 class="auth-title">Sign Up</h1>
+
+      <form class="auth-form" id="signupForm">
+        <input
+          class="auth-input"
+          type="text"
+          id="username"
+          placeholder="Username"
+          required
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <p class="auth-hint">Lowercase letters, numbers, and hyphens only. e.g. yourname</p>
+        <input
+          class="auth-input"
+          type="email"
+          id="email"
+          placeholder="Email"
+          required
+          autocomplete="email"
+        />
+        <input
+          class="auth-input"
+          type="password"
+          id="password"
+          placeholder="Password (min 6 characters)"
+          required
+          autocomplete="new-password"
+          minlength="6"
+        />
+        <p class="auth-error" id="errorMsg"></p>
+        <button class="auth-btn" type="submit" id="submitBtn">Create account</button>
+      </form>
+
+      <p class="auth-footer">
+        Already have an account? <a href="/login">Log in</a>
+      </p>
+    </div>
+  </main>
+
+  <script type="module">
+    import { supabase } from './supabase-client.js'
+
+    const form = document.getElementById('signupForm')
+    const errorMsg = document.getElementById('errorMsg')
+    const submitBtn = document.getElementById('submitBtn')
+
+    // Redirect if already logged in
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) window.location.href = '/dashboard'
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      errorMsg.textContent = ''
+
+      const username = document.getElementById('username').value.trim().toLowerCase()
+      const email = document.getElementById('email').value.trim()
+      const password = document.getElementById('password').value
+
+      // Validate username format
+      if (!/^[a-z0-9-]+$/.test(username)) {
+        errorMsg.textContent = 'Username may only contain lowercase letters, numbers, and hyphens.'
+        return
+      }
+
+      submitBtn.disabled = true
+      submitBtn.textContent = 'Creating account…'
+
+      // Check username availability before signing up
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', username)
+        .single()
+
+      if (existing) {
+        errorMsg.textContent = 'That username is already taken.'
+        submitBtn.disabled = false
+        submitBtn.textContent = 'Create account'
+        return
+      }
+
+      // Create auth user
+      const { data, error } = await supabase.auth.signUp({ email, password })
+
+      if (error) {
+        errorMsg.textContent = error.message
+        submitBtn.disabled = false
+        submitBtn.textContent = 'Create account'
+        return
+      }
+
+      // Insert profile row
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: data.user.id,
+        username,
+        display_name: username,
+        bio: '',
+        links: []
+      })
+
+      if (profileError) {
+        // Handle rare race-condition duplicate (DB unique constraint)
+        if (profileError.code === '23505') {
+          errorMsg.textContent = 'That username is already taken.'
+        } else {
+          errorMsg.textContent = profileError.message
+        }
+        submitBtn.disabled = false
+        submitBtn.textContent = 'Create account'
+        return
+      }
+
+      window.location.href = '/dashboard'
+    })
+  </script>
+</body>
+</html>
